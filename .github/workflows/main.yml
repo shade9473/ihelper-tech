@@ -15,7 +15,7 @@ jobs:
         python-version: [3.9, 3.10]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
@@ -51,7 +51,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Run Bandit
       uses: tj-actions/bandit@v5.1
@@ -72,7 +72,7 @@ jobs:
     if: github.ref == 'refs/heads/master'
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up CloudFlare credentials
       run: |
@@ -98,7 +98,7 @@ jobs:
       url: https://ihelper.tech
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Deploy to CloudFlare Pages (Production)
       run: |
