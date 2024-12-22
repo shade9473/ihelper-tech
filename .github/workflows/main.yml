@@ -1,0 +1,111 @@
+name: iHelper Tech CI/CD
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9, 3.10]
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-cov pylint black
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        
+    - name: Run black
+      run: |
+        black . --check
+        
+    - name: Run pylint
+      run: |
+        pylint src/ --fail-under=8.0
+        
+    - name: Run tests with coverage
+      run: |
+        pytest --cov=src tests/ --cov-report=xml
+        
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        fail_ci_if_error: true
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Run Bandit
+      uses: tj-actions/bandit@v5.1
+      with:
+        targets: |
+          src/
+        options: -r -c pyproject.toml -ll
+        
+    - name: Run safety check
+      run: |
+        pip install safety
+        safety check
+
+  deploy-staging:
+    name: Deploy to Staging
+    needs: [test, security]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up CloudFlare credentials
+      run: |
+        echo "${{ secrets.CLOUDFLARE_API_TOKEN }}" > .cloudflare_token
+      
+    - name: Deploy to CloudFlare Pages (Staging)
+      run: |
+        # Deploy commands will be added once CloudFlare credentials are provided
+        echo "Deploying to staging..."
+        
+    - name: Run integration tests
+      run: |
+        # Integration test commands will be added
+        echo "Running integration tests..."
+
+  deploy-production:
+    name: Deploy to Production
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    environment:
+      name: production
+      url: https://ihelper.tech
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Deploy to CloudFlare Pages (Production)
+      run: |
+        # Production deployment commands will be added once CloudFlare credentials are provided
+        echo "Deploying to production..."
+        
+    - name: Verify deployment
+      run: |
+        # Verification commands will be added
+        echo "Verifying deployment..."
